@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Pagamentos por Conjunto</title>
+  <meta name="claude:viewport-fit-sides" content="cover">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+  <style>
+    :root {
+      color-scheme: light;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+    body {
+      margin: 0; padding: 0; font: 14px -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #000;
+      background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+      padding-block: 28px 48px;
+      padding-left: max(16px, env(safe-area-inset-left, 0px));
+      padding-right: max(16px, env(safe-area-inset-right, 0px));
+    }
+    img { max-width: 100%; }
+    [hidden]:not([hidden=until-found i]) { display: none !important; }
+
+    :root {
+      --bg: #F2F4F6; --surface: #FFFFFF; --ink: #13202B; --muted: #5A6978; --line: #D9DFE5;
+      --accent: #0F5FA8; --accent-soft: #DCE9F6; --warn: #B3261E; --warn-soft: #FBE6E4;
+      --amber: #7A4F00; --amber-soft: #FFF1D1; --amber-line: #D9A441;
+      --cavalo-bg: #13202B; --cavalo-fg: #FFFFFF;
+      --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --font-body: "Barlow", system-ui, sans-serif;
+      --font-plate: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0E151C; --surface: #16202A; --ink: #E8EEF3; --muted: #93A3B2; --line: #2A3846;
+        --accent: #5AA6F0; --accent-soft: #1B3550; --warn: #FF8A80; --warn-soft: #3A1C1B;
+        --amber: #F2C265; --amber-soft: #3A2C0F; --amber-line: #8A6A24;
+        --cavalo-bg: #E8EEF3; --cavalo-fg: #0E151C; color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0E151C; --surface: #16202A; --ink: #E8EEF3; --muted: #93A3B2; --line: #2A3846;
+      --accent: #5AA6F0; --accent-soft: #1B3550; --warn: #FF8A80; --warn-soft: #3A1C1B;
+      --amber: #F2C265; --amber-soft: #3A2C0F; --amber-line: #8A6A24;
+      --cavalo-bg: #E8EEF3; --cavalo-fg: #0E151C; color-scheme: dark;
+    }
+
+    .wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+    .wrap > * { min-width: 0; }
+
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.05; margin: 0; text-wrap: balance; }
+    h1 { font-size: clamp(34px, 7vw, 52px); letter-spacing: 0.01em; }
+    h2 { font-size: 28px; }
+    p { margin: 0; }
+    .eyebrow { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+    header { display: flex; flex-direction: column; gap: 14px; }
+    .lead { color: var(--muted); max-width: 62ch; font-size: 17px; }
+    .summary { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: baseline; padding-top: 6px; }
+    .summary .total { font-family: var(--font-display); font-weight: 700; font-size: clamp(40px, 9vw, 64px); color: var(--warn); line-height: 1; font-variant-numeric: tabular-nums; }
+    .summary .facts { display: flex; flex-wrap: wrap; gap: 4px 20px; color: var(--muted); font-size: 15px; }
+    .summary .facts b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+    .panel > * { min-width: 0; }
+    .bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+    .bar-row { display: grid; grid-template-columns: 150px 1fr; gap: 6px 16px; align-items: center; }
+    .bar-label { display: flex; flex-direction: column; line-height: 1.2; }
+    .bar-label strong { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .bar-label span { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .track { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .fill { height: 30px; background: var(--accent); border-radius: 3px; flex: none; }
+    .val { font-family: var(--font-display); font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .scale-note { font-size: 13px; color: var(--muted); }
+
+    .list { display: flex; flex-direction: column; gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .card-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .card-head > * { min-width: 0; }
+    .card-title { display: flex; flex-direction: column; gap: 6px; }
+    .card-title .count { font-size: 14px; color: var(--muted); }
+    .card-money { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+    .card-money .label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .card-money .amount { font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1; color: var(--warn); font-variant-numeric: tabular-nums; }
+    .card-money .due { font-size: 15px; font-variant-numeric: tabular-nums; }
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.02em; }
+    .pill.pay { background: var(--warn-soft); color: var(--warn); }
+    .pill.boleto { background: var(--amber-soft); color: var(--amber); }
+    .card-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+    .group { display: flex; flex-direction: column; gap: 8px; }
+    .group h3 { font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-family: var(--font-body); font-weight: 600; }
+    .plates { display: flex; flex-wrap: wrap; gap: 6px; }
+    .plate { font-family: var(--font-plate); font-weight: 600; font-size: 14px; letter-spacing: 0.04em; padding: 4px 9px; border-radius: 4px; border: 1.5px solid var(--ink); color: var(--ink); background: transparent; }
+    .plate.cavalo { background: var(--cavalo-bg); color: var(--cavalo-fg); border-color: var(--cavalo-bg); }
+    .plate.blocked { border: 1.5px dashed var(--amber-line); background: var(--amber-soft); color: var(--amber); }
+
+    .nobol { background: var(--amber-soft); border: 1px solid var(--amber-line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .nobol h3 { color: var(--amber); }
+    .nobol p { font-size: 15px; color: var(--ink); max-width: 66ch; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--muted); align-items: center; }
+    .legend .plate { font-size: 12px; padding: 2px 7px; }
+
+    .notice { background: var(--amber-soft); border: 1px solid var(--amber-line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .notice h2 { color: var(--amber); }
+    .notice p { max-width: 66ch; }
+
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    @media (max-width: 560px) {
+      .bar-row { grid-template-columns: 1fr; gap: 4px; }
+      .bar-label { flex-direction: row; align-items: baseline; gap: 10px; }
+      .card-money { align-items: flex-start; text-align: left; }
+      .panel { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Controle de pagamentos</p>
+    <h1>Valor a pagar por conjunto</h1>
+    <p class="lead">Cada conjunto tem um valor em aberto e uma data de vencimento. O pagamento ainda não foi realizado. Efetue o pagamento do valor indicado e use as placas de cada conjunto para conferir.</p>
+    <div class="summary" id="summary"></div>
+  </header>
+
+  <section class="panel" aria-labelledby="chart-title">
+    <div>
+      <h2 id="chart-title">Quanto cada conjunto deve</h2>
+    </div>
+    <ul class="bars" id="bars"></ul>
+    <p class="scale-note">O comprimento de cada barra é proporcional ao valor. Pagamento não realizado em todos os conjuntos.</p>
+  </section>
+
+  <section class="notice" aria-labelledby="notice-title">
+    <p class="eyebrow">Conjunto 6</p>
+    <h2 id="notice-title">3 carretas sem boleto gerado</h2>
+    <p>As placas <strong id="notice-plates"></strong> não estão gerando boleto porque estão agregadas a uma placa com status de inadimplente. Enquanto essa placa não for regularizada, essas carretas não geram boleto.</p>
+  </section>
+
+  <section class="list-section" aria-labelledby="plates-title" style="display:flex;flex-direction:column;gap:14px;">
+    <h2 id="plates-title">Placas de cada conjunto</h2>
+    <div class="legend">
+      <span><span class="plate cavalo">AAA0A00</span> Cavalo</span>
+      <span><span class="plate">AAA0A00</span> Carreta agregada</span>
+      <span><span class="plate blocked">AAA0A00</span> Carreta sem boleto</span>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var D = [
+    { n: 1, valor: 1604.00, venc: "17/06/2026",
+      cavalos: ["AQO1I17","GBN9H57","GHA6G36","QTO4E99"],
+      carretas: ["SED7I17","SEE7I17","SEF7I17","SEB7I17","SEA7I17","SEC7I17","SYF5H80","SYG4H52","SYG4H45"] },
+    { n: 2, valor: 2114.00, venc: "20/06/2026",
+      cavalos: ["QIH6F75","GAT3G93","OOO2C00"],
+      carretas: ["BEF4B24","BEF4B23","BEF4B22","QIO8I16","QIP8B86","QIP8C96","RWA7G89","RWA7I54","RWA7I51"] },
+    { n: 3, valor: 523.50, venc: "25/06/2026",
+      cavalos: ["OBJ3I39"],
+      carretas: ["AXV0G86","AXV0G88"] },
+    { n: 4, valor: 1188.00, venc: "20/06/2026",
+      cavalos: ["GJV9I66","OYC8I68","AUM7G06"],
+      carretas: ["AIX4E45","AIX4E47","AIX4E46","AMZ6B34","AMZ6B33","BEA7G10"] },
+    { n: 5, valor: 1838.00, venc: "20/07/2026",
+      cavalos: ["AOP7A71","AXN1424","MMK3C91","OBN9A04"],
+      carretas: ["SEF9E51","SEF9E52","SEF9E53","GHG6G24","GFC3J96","GHR7A18","UAU7I17"] },
+    { n: 6, valor: 1744.00, venc: "10/08/2026",
+      cavalos: ["GHU2F45","QAP6I15","SEN7I17","AWN9H88"],
+      carretas: ["SEO7I17","SEQ7I17","RRU5H28","RRU5H19","RRU5H29","OBH0J03","OBH0J23","OBH0J43","BAP9B87","BAP9B88","BEY7B16","BEY7B15","BEY7B13","QQM8A49","QQM8A43","QQM8A69"],
+      semBoleto: ["RAU1C81","RAU1D01","RAU1D21"] },
+    { n: 7, valor: 872.00, venc: "03/09/2026",
+      cavalos: ["QJK9F88","QAH1G40"],
+      carretas: ["OAX0A37","OAX0A17","OAX0A27"] }
+  ];
+
+  function brl(v) {
+    return "R$ " + v.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function plates(arr, cls) {
+    return arr.map(function (p) { return '<span class="plate ' + cls + '">' + esc(p) + "</span>"; }).join("");
+  }
+
+  var total = 0, veiculos = 0, sem = 0, max = 0;
+  D.forEach(function (c) {
+    c.sem = (c.semBoleto || []).length;
+    c.qtd = c.cavalos.length + c.carretas.length + c.sem;
+    total += c.valor; veiculos += c.qtd; sem += c.sem;
+    if (c.valor > max) max = c.valor;
+  });
+
+  document.getElementById("summary").innerHTML =
+    '<div class="total">' + brl(total) + '</div>' +
+    '<div class="facts"><span><b>' + D.length + '</b> conjuntos</span><span><b>' + veiculos + '</b> placas</span><span><b>' + sem + '</b> carretas sem boleto</span></div>';
+
+  document.getElementById("bars").innerHTML = D.map(function (c) {
+    var w = Math.max(4, (c.valor / max) * 100);
+    return '<li class="bar-row">' +
+      '<div class="bar-label"><strong>Conjunto ' + c.n + '</strong><span>vence ' + c.venc + '</span></div>' +
+      '<div class="track"><div class="fill" style="width:calc(' + w.toFixed(1) + '% - 130px);min-width:6px"></div><span class="val">' + brl(c.valor) + '</span></div>' +
+      '</li>';
+  }).join("");
+
+  document.getElementById("notice-plates").textContent = D[5].semBoleto.join(", ");
+
+  document.getElementById("list").innerHTML = D.map(function (c) {
+    var extra = c.sem ? '<div class="nobol"><h3>Carretas sem boleto gerado (' + c.sem + ')</h3>' +
+      '<div class="plates">' + plates(c.semBoleto, "blocked") + '</div>' +
+      '<p>Estão agregadas a uma placa com status de inadimplente, por isso não geram boleto.</p></div>' : "";
+    return '<article class="card">' +
+      '<div class="card-head">' +
+        '<div class="card-title"><h3 style="font-size:32px">Conjunto ' + c.n + '</h3>' +
+          '<span class="count">' + c.qtd + ' placas: ' + c.cavalos.length + ' cavalos e ' + (c.carretas.length + c.sem) + ' carretas</span>' +
+          '<div class="pills"><span class="pill pay">Pagamento não realizado</span><span class="pill boleto">Boleto não gerado</span></div></div>' +
+        '<div class="card-money"><span class="label">Valor a pagar</span><span class="amount">' + brl(c.valor) + '</span><span class="due">Vencimento: ' + c.venc + '</span></div>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="group"><h3>Cavalos (' + c.cavalos.length + ')</h3><div class="plates">' + plates(c.cavalos, "cavalo") + '</div></div>' +
+        '<div class="group"><h3>Carretas agregadas (' + c.carretas.length + ')</h3><div class="plates">' + plates(c.carretas, "") + '</div></div>' +
+        extra +
+      '</div></article>';
+  }).join("");
+})();
+</script>
+
+</body>
+</html>
